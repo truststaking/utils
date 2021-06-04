@@ -56,7 +56,7 @@ def test_rewards(address):
             diff = abs(totalRewards - agencies[provider])
             tests += 1
             if abs(totalRewards - agencies[provider]) > 0.000001 and totalRewards != 0:
-                with open('errors.txt', 'a') as errors:
+                with open('./logs/errors.txt', 'a') as errors:
                     print(address, file=errors)
                     print('\t', provider, file=errors)
                     print('\t\t', totalRewards, agencies[provider], file=errors)
