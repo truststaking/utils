@@ -11,7 +11,7 @@ from erdpy.contracts import SmartContract
 import statistics
 import boto3
 
-from utils import getEpoch
+from utils import getEpoch, convert_number
 
 mainnet_proxy = ElrondProxy('https://gateway.elrond.com')
 session = boto3.Session(profile_name='default')
@@ -30,6 +30,9 @@ def calculate_avg_apy(table, agency, start_epoch=250):
 
     reply = contract.query(mainnet_proxy, 'getContractConfig', [])
     owner_address = Address(json.loads(reply[0].to_json())['hex']).bech32()
+    max_cap = convert_number(json.loads(reply[2].to_json())['number']) if reply[2] != '' else 'no_cap'
+    has_deleg_cap = bytes.fromhex(json.loads(reply[5].to_json())['hex']).decode('utf-8')
+    check_cap_redeleg = bytes.fromhex(json.loads(reply[7].to_json())['hex']).decode('utf-8')
     params = {'address': owner_address}
     resp = requests.get(url, params)
     data = resp.json()
@@ -49,7 +52,15 @@ def calculate_avg_apy(table, agency, start_epoch=250):
                     datas[bech32_address].append(float(0))
 
             avg_at_epoch = statistics.mean(datas[bech32_address])
-            item = {'provider': bech32_address, 'epoch': epoch, 'avg_apy': '{:.4f}'.format(avg_at_epoch)}
+            item = {
+                'provider': bech32_address,
+                'owner': owner_address,
+                'epoch': epoch,
+                'avg_apy': '{:.4f}'.format(avg_at_epoch),
+                'max_cap': str(max_cap),
+                'has_deleg_cap': has_deleg_cap,
+                'check_cap_redeleg': check_cap_redeleg
+            }
             table.put_item(Item=item)
             print(item)
 
@@ -66,7 +77,7 @@ def update_avg_apy(table, agency):
     if not reply['Items']:
         calculate_avg_apy(table, agency)
     else:
-        calculate_avg_apy(table, agency, reply['Items']['epoch'])
+        calculate_avg_apy(table, agency, int(reply['Items'][0]['epoch']))
 
 
 def update_avg_apy_all_agencies(table):
