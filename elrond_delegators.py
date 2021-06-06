@@ -7,7 +7,11 @@ import requests
 from erdpy.accounts import Address
 
 from agency_info import agencies
+<<<<<<< HEAD
 from utils import dynamodb, Phase3, getEpoch
+=======
+from utils import dynamodb, Phase3
+>>>>>>> Agencies distribution
 
 url = 'http://api.elrond.tax/allTransactions'
 
@@ -73,8 +77,13 @@ def get_network_delegators(table=None, after_epoch=None):
                     and after_epoch is not None \
                     and int(epoch) >= after_epoch:
                     distribution = {
+<<<<<<< HEAD
                         'provider': contract,
                         'epoch': int(epoch),
+=======
+                        'proxider': contract,
+                        'epoch': epoch,
+>>>>>>> Agencies distribution
                         'no_withdrawers': withdrawers,
                         'all_time_delegators': all_time_delegators,
                         'all_time_withdrawers': all_time_w,
@@ -132,5 +141,5 @@ if __name__ == '__main__':
     while True:
         t = datetime.today()
         get_network_delegators(agencies_distribution, getEpoch(t.timestamp()))
-        future = datetime(t.year, t.month, t.day + 1, 15, 35)
+        future = datetime(t.year, t.month, t.day + 0, 15, 35)
         time.sleep((future - t).total_seconds())
