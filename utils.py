@@ -1,7 +1,15 @@
+import boto3
+from erdpy.proxy import ElrondProxy
+
 genesis = {
     'timestamp': 1596112200,
     'epoch': 0,
 }
+
+Phase3 = {
+  'timestamp': 1617633000,
+  'epoch': 249,
+};
 
 binance_listing = 1599102000
 
@@ -11,3 +19,7 @@ def getEpoch(timestamp):
 
 def convert_number(number, decimals=2):
     return number // 10 ** (18 - decimals) / 10 ** decimals
+
+mainnet_proxy = ElrondProxy('https://gateway.elrond.com')
+session = boto3.Session(profile_name='default')
+dynamodb = session.resource('dynamodb', region_name='eu-west-1')
