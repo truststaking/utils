@@ -36,7 +36,8 @@ def calculate_avg_apy(table, agency, start_epoch=250):
     params = {'address': owner_address}
     resp = requests.get(url, params)
     data = resp.json()
-    datas[bech32_address] = []
+    if not bech32_address in datas:
+        datas[bech32_address] = []
     try:
         current_epoch = getEpoch(int(datetime.utcnow().timestamp()))
         for epoch in range(start_epoch, current_epoch + 1):
