@@ -138,8 +138,13 @@ def get_network_delegators(table=None, after_epoch=None):
 
 
 if __name__ == '__main__':
+#    get_network_delegators(agencies_distribution, 250)
     while True:
         t = datetime.today()
-        get_network_delegators(agencies_distribution, getEpoch(t.timestamp()))
-        future = datetime(t.year, t.month, t.day + 0, 15, 35)
-        time.sleep((future - t).total_seconds())
+        next_epoch = getEpoch(t.timestamp())
+        print("next epoch: ", next_epoch)
+        get_network_delegators(agencies_distribution, next_epoch)
+        future = datetime(t.year, t.month, t.day + 1, 15, 35)
+        t_sleep = (future - t).total_seconds()
+        print("sleep for: ", t_sleep, " seconds")
+        time.sleep(t_sleep)
