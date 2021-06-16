@@ -4,7 +4,7 @@ import time
 
 import requests
 from boto3.dynamodb.conditions import Key
-
+import json
 from erdpy.accounts import Address
 from erdpy.proxy import ElrondProxy
 from erdpy.contracts import SmartContract
@@ -91,7 +91,11 @@ def update_avg_apy_all_agencies(table):
 
 if __name__ == '__main__':
     while True:
+        with open('datas.json', 'r') as fp:
+            datas = json.load(fp)
         update_avg_apy_all_agencies(avg_apy)
         t = datetime.today()
-        future = datetime(t.year, t.month, t.day + 1, 15, 31)
+        future = datetime(t.year, t.month, t.day + 1, 15, 35)
+        with open('datas.json', 'w') as fp:
+            json.dump(datas, fp)
         time.sleep((future - t).total_seconds())
