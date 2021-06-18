@@ -78,7 +78,7 @@ def update_avg_apy(table, agency):
     if not reply['Items']:
         calculate_avg_apy(table, agency)
     else:
-        calculate_avg_apy(table, agency, int(reply['Items'][0]['epoch']))
+        calculate_avg_apy(table, agency, int(reply['Items'][0]['epoch']) + 1)
 
 
 def update_avg_apy_all_agencies(table):
@@ -98,4 +98,6 @@ if __name__ == '__main__':
         future = datetime(t.year, t.month, t.day + 1, 15, 35)
         with open('datas.json', 'w') as fp:
             json.dump(datas, fp)
-        time.sleep((future - t).total_seconds())
+        total_sec = (future - t).total_seconds()
+        print(t.timestamp, " -> seconds to sleep: ", total_sec);
+        time.sleep(total_sec)
