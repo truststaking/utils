@@ -135,7 +135,7 @@ if __name__ == '__main__':
         next_epoch = getEpoch(t.timestamp())
         print("next epoch: ", next_epoch)
         get_network_delegators(agencies_distribution, next_epoch)
-        future = datetime(t.year, t.month, t.day + 1, 15, 35)
+        future = datetime(t.year, t.month, t.day + 1, 14, 35)
         t_sleep = (future - t).total_seconds()
         print("sleep for: ", t_sleep, " seconds")
         time.sleep(t_sleep)

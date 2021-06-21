@@ -110,7 +110,7 @@ if __name__ == '__main__':
             datas = json.load(fp)
         update_avg_apy_all_agencies(avg_apy)
         t = datetime.today()
-        future = datetime(t.year, t.month, t.day + 1, 15, 35)
+        future = datetime(t.year, t.month, t.day + 1, 14, 35)
         with open('datas.json', 'w') as fp:
             json.dump(datas, fp)
         total_sec = (future - t).total_seconds()
