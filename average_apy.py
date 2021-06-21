@@ -81,7 +81,7 @@ def calculate_avg_apy(table, agency, start_epoch=250):
             'has_deleg_cap': has_deleg_cap,
             'check_cap_redeleg': check_cap_redeleg
         }
-        #table.put_item(Item=item)
+        table.put_item(Item=item)
         print('(', item['epoch'], item['avg_apy'], datas[bech32_address][-1], end='),\n\t')
     print()
 
