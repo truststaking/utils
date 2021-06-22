@@ -54,7 +54,7 @@ def calculate_avg_apy(table, agency, start_epoch=250):
         print('provider: ', bech32_address, " owner: ", owner_address, file=sys.stderr)
         print('No rewards_per_epoch', file=sys.stderr)
         return
-    current_epoch = getEpoch(int(datetime.utcnow().timestamp()))
+    current_epoch = getEpoch(int(datetime.utcnow().timestamp())) + 1
     for epoch in range(start_epoch, current_epoch + 1):
         if bech32_address not in data['rewards_per_epoch']:
             print('provider: ', bech32_address, " owner: ", owner_address, file=sys.stderr)
@@ -63,7 +63,7 @@ def calculate_avg_apy(table, agency, start_epoch=250):
         else:
             n = next((i for i, epochs in enumerate(data['rewards_per_epoch'][bech32_address])
                       if 'APRDelegator' in epochs and epoch == epochs['epoch']), None)
-            if n:
+            if n is not None:
                 datas[bech32_address].append(
                     float(data['rewards_per_epoch'][bech32_address][n]['APRDelegator']))
             else:
