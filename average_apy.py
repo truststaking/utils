@@ -54,7 +54,8 @@ def calculate_avg_apy(table, agency, start_epoch=250):
         print('provider: ', bech32_address, " owner: ", owner_address, file=sys.stderr)
         print('No rewards_per_epoch', file=sys.stderr)
         return
-    current_epoch = getEpoch(int(datetime.utcnow().timestamp())) + 1
+    current_epoch = getEpoch(int(datetime.utcnow().timestamp()))
+    print("current_epoch: ", current_epoch)
     for epoch in range(start_epoch, current_epoch + 1):
         if bech32_address not in data['rewards_per_epoch']:
             print('provider: ', bech32_address, " owner: ", owner_address, file=sys.stderr)
@@ -82,7 +83,7 @@ def calculate_avg_apy(table, agency, start_epoch=250):
             'check_cap_redeleg': check_cap_redeleg
         }
         table.put_item(Item=item)
-        print('(', item['epoch'], item['avg_apy'], datas[bech32_address][-1], end='),\n\t')
+        print('(', item['epoch'], item['avg_apy'], datas[bech32_address][-1], end='),\t')
     print()
 
 def update_avg_apy(table, agency):
