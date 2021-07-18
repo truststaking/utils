@@ -20,19 +20,17 @@ dynamodb = session.resource('dynamodb', region_name='eu-west-1')
 avg_apy = dynamodb.Table('avg_apy')
 
 url = 'http://api.elrond.tax/'
-datas = {}
 
 
-def calculate_avg_apy(table, agency, start_epoch=250):
-    global datas
+def calculate_avg_apy(table, agency, daily_apys=None, start_epoch=250):
+    if daily_apys is None:
+        daily_apys = []
     hex_address = json.loads(agency.to_json())['hex']
     bech32_address = Address(hex_address).bech32()
     contract = SmartContract(bech32_address)
     reply = contract.query(mainnet_proxy, 'getContractConfig', [])
     owner_address = Address(json.loads(reply[0].to_json())['hex']).bech32()
-    max_cap = convert_number(json.loads(reply[2].to_json())['number']) if reply[2] != '' else 'no_cap'
-    has_deleg_cap = bytes.fromhex(json.loads(reply[5].to_json())['hex']).decode('utf-8')
-    check_cap_redeleg = bytes.fromhex(json.loads(reply[7].to_json())['hex']).decode('utf-8')
+
     params = {'address': owner_address}
     resp = requests.get(url + 'rewardsHistory', params)
     try:
@@ -42,8 +40,6 @@ def calculate_avg_apy(table, agency, start_epoch=250):
         print(e, file=sys.stderr)
         return
 
-    if not bech32_address in datas:
-        datas[bech32_address] = []
     print('provider: ', bech32_address, " owner: ", owner_address)
     print('\t', end='')
     if 'error' in data:
@@ -64,38 +60,34 @@ def calculate_avg_apy(table, agency, start_epoch=250):
         else:
             n = next((i for i, epochs in enumerate(data['rewards_per_epoch'][bech32_address])
                       if 'APRDelegator' in epochs and epoch == epochs['epoch']), None)
+            daily_apy = 0
             if n is not None:
-                datas[bech32_address].append(
-                    float(data['rewards_per_epoch'][bech32_address][n]['APRDelegator']))
+                daily_apy = float(data['rewards_per_epoch'][bech32_address][n]['APRDelegator'])
             else:
-                if not datas[bech32_address]:
+                if not daily_apys:
                     continue
-                datas[bech32_address].append(float(0))
+            daily_apys.append(daily_apy)
 
-        avg_at_epoch = statistics.mean(datas[bech32_address])
+        avg_at_epoch = statistics.mean(daily_apys)
         item = {
             'provider': bech32_address,
             'owner': owner_address,
             'epoch': epoch,
             'avg_apy': '{:.4f}'.format(avg_at_epoch),
-            'max_cap': str(max_cap),
-            'has_deleg_cap': has_deleg_cap,
-            'check_cap_redeleg': check_cap_redeleg
+            'daily_apy': '{:.4f}'.format(daily_apy)
         }
         table.put_item(Item=item)
-        print('(', item['epoch'], item['avg_apy'], datas[bech32_address][-1], end='),\t')
-    print()
 
 def update_avg_apy(table, agency):
     hex_address = json.loads(agency.to_json())['hex']
     bech32_address = Address(hex_address).bech32()
     kce = Key('provider').eq(bech32_address) & Key('epoch').gte(250)
-    reply = table.query(KeyConditionExpression=kce, ScanIndexForward=False, Limit=1)
+    reply = table.query(KeyConditionExpression=kce, ScanIndexForward=False)
     if not reply['Items']:
-        calculate_avg_apy(table, agency)
+        return calculate_avg_apy(table, agency)
     else:
-        calculate_avg_apy(table, agency, int(reply['Items'][0]['epoch']))
-
+        daily_apys = [float(item['daily_apy']) for item in reply['Items']]
+        return calculate_avg_apy(table, agency, daily_apys, int(reply['Items'][0]['epoch']))
 
 def update_avg_apy_all_agencies(table):
     agencies = SmartContract('erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6').query(mainnet_proxy,
@@ -107,13 +99,9 @@ def update_avg_apy_all_agencies(table):
 
 if __name__ == '__main__':
     while True:
-        with open('datas.json', 'r') as fp:
-            datas = json.load(fp)
         update_avg_apy_all_agencies(avg_apy)
         t = datetime.today()
-        future = datetime(t.year, t.month, t.day + 1, 14, 35)
-        with open('datas.json', 'w') as fp:
-            json.dump(datas, fp)
+        future = datetime(t.year, t.month, t.day + 1, 15, 35)
         total_sec = (future - t).total_seconds()
         print(t.timestamp(), " -> seconds to sleep: ", total_sec)
         time.sleep(total_sec)
