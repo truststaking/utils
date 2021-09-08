@@ -19,7 +19,7 @@ session = boto3.Session(profile_name='default')
 dynamodb = session.resource('dynamodb', region_name='eu-west-1')
 avg_apy = dynamodb.Table('avg_apy')
 
-url = 'http://api.elrond.tax/'
+url = 'http://api.elrond.tax/accounts/'
 
 
 def calculate_avg_apy(table, agency, daily_apys=None, start_epoch=250):
@@ -31,8 +31,7 @@ def calculate_avg_apy(table, agency, daily_apys=None, start_epoch=250):
     reply = contract.query(mainnet_proxy, 'getContractConfig', [])
     owner_address = Address(json.loads(reply[0].to_json())['hex']).bech32()
 
-    params = {'address': owner_address}
-    resp = requests.get(url + 'rewardsHistory', params)
+    resp = requests.get(url + owner_address + '/txHistory')
     try:
         data = resp.json()
     except Exception as e:
@@ -46,6 +45,11 @@ def calculate_avg_apy(table, agency, daily_apys=None, start_epoch=250):
         print('provider: ', bech32_address, " owner: ", owner_address, file=sys.stderr)
         print(data['error'], file=sys.stderr)
         return
+    if 'rewards' not in data:
+        print('provider: ', bech32_address, " owner: ", owner_address, file=sys.stderr)
+        print('No rewards', file=sys.stderr)
+        return
+    data = data['rewards']
     if 'rewards_per_epoch' not in data:
         print('provider: ', bech32_address, " owner: ", owner_address, file=sys.stderr)
         print('No rewards_per_epoch', file=sys.stderr)
