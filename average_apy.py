@@ -81,6 +81,7 @@ def calculate_avg_apy(table, agency, daily_apys=None, start_epoch=250):
             'daily_apy': '{:.4f}'.format(daily_apy)
         }
         table.put_item(Item=item)
+        time.sleep(0.5)
 
 def update_avg_apy(table, agency):
     hex_address = json.loads(agency.to_json())['hex']
